@@ -29,8 +29,9 @@ class startingScreen:
         db.close()
 
         for i in range(len(teamList)):
-            lbl = tk.Button(self.frmSplash, text=teamList[i], command= lambda: self.selectTeam())
+            lbl = tk.Button(self.frmSplash, text=teamList[i], command= lambda team=teamList[i]: self.selectTeam(team))
             lbl.grid(row=2, column=i, sticky='N')
 
-    def selectTeam(self):
+    def selectTeam(self, team):
+        print(team[0])
         self.frmSplash.destroy()
