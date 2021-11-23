@@ -1,35 +1,28 @@
 import sqlite3
 
 class DB:
+	DB_LOCATION = "soccer.db"
+
 	def __init__(self):
-		self.dbase = 'soccer.db'
-
-		self.conn()
-
-	def conn(self):
-		global conn
-		global c
-
-		conn = sqlite3.connect(self.dbase)
-		c = conn.cursor()
+		self.connection = sqlite3.connect(self.DB_LOCATION)
+		self.cursor = self.connection.cursor()
 
 	def getTeams(self):
-		c.execute("""
+		self.cursor.execute("""
 				SELECT name, year
 				FROM team
 				WHERE active = true
 				;""")
-		rows = c.fetchall()
+		rows = self.cursor.fetchall()
 		return rows
 
 	def addTeam(self, name, year, num_players):
 		team = [name, year, num_players, True]
 		sql = "INSERT INTO team values (?,?,?,?)"
-		print(sql)
-		c.execute(sql, team)
+		self.cursor.execute(sql, team)
 
 	def create_tables(self):
-		c.execute("""CREATE TABLE team (
+		self.cursor.execute("""CREATE TABLE team (
 				name text,
 				year text,
 				num_players integer,
@@ -38,15 +31,25 @@ class DB:
 				);""")
 
 	def drop_tables(self):
-		c.execute("""
+		self.cursor.execute("""
 			DROP TABLE IF EXISTS team;
 			"""
 			)
 
 	def commit(self):
-		conn.commit()
+		self.connection.commit()
 
 	def close(self):
-		conn.commit()
-		conn.close()
+		self.connection.commit()
+		self.connection.close()
 
+	def __enter__(self):
+		return self
+
+	def __exit__(self, ext_type, exc_value, traceback):
+		self.cursor.close()
+		if isinstance(exc_value, Exception):
+			self.connection.rollback()
+		else:
+			self.connection.commit()
+		self.connection.close()
